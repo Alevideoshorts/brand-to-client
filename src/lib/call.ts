@@ -1,35 +1,88 @@
 import type { Settings } from './types';
 
-const WEEK = 7 * 24 * 60 * 60 * 1000;
+const TZ = 'Europe/Rome';
 /** Per quanto tempo dopo l'inizio la call risulta "in corso". */
 const LIVE_WINDOW = 2 * 60 * 60 * 1000;
 
-export interface CallInfo {
+export const WEEKDAYS = ['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
+
+const fmt = new Intl.DateTimeFormat('en-GB', {
+  timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+});
+
+/** Data e ora "da orologio" a Roma per un istante. */
+function romeParts(t: number) {
+  const p: Record<string, number> = {};
+  fmt.formatToParts(new Date(t)).forEach((x) => {
+    if (x.type !== 'literal') p[x.type] = Number(x.value);
+  });
+  return { y: p.year, m: p.month, d: p.day, h: p.hour, mi: p.minute };
+}
+
+/** Istante corrispondente a un'ora "da orologio" a Roma. */
+function romeWallToUtc(y: number, m: number, d: number, h: number, mi: number): number {
+  const guess = Date.UTC(y, m - 1, d, h, mi);
+  const r = romeParts(guess);
+  const offset = Date.UTC(r.y, r.m - 1, r.d, r.h, r.mi) - guess;
+  return guess - offset;
+}
+
+export interface StudentCalls {
   configured: boolean;
+  /** Call incluse nel periodo dello studente. */
+  total: number;
+  /** Call ancora da fare (compresa quella in corso). */
+  remaining: number;
   /** Numero della prossima call (1-based). */
   number: number;
-  total: number;
-  /** Data della prossima call (o di quella in corso). */
-  at: Date | null;
+  next: Date | null;
   live: boolean;
   finished: boolean;
+  /** Fine del periodo di call dello studente. */
+  until: Date | null;
+  months: number;
+  weekdayLabel: string;
+  time: string;
 }
 
-/** Calcola la prossima call settimanale partendo dalla prima call e dal numero totale. */
-export function nextCall(settings: Settings, now = Date.now()): CallInfo {
-  const total = Math.max(1, parseInt(settings.call_count, 10) || 8);
-  const first = settings.call_first_at ? new Date(settings.call_first_at).getTime() : NaN;
-  if (Number.isNaN(first)) return { configured: false, number: 0, total, at: null, live: false, finished: false };
-  for (let i = 0; i < total; i++) {
-    const start = first + i * WEEK;
-    if (now < start + LIVE_WINDOW) {
-      return { configured: true, number: i + 1, total, at: new Date(start), live: now >= start, finished: false };
-    }
+/**
+ * Call settimanali di uno studente: una a settimana (giorno e ora fissi, ora italiana)
+ * per N mesi a partire dal giorno in cui è stato sbloccato.
+ */
+export function studentCalls(settings: Settings, startIso: string | null | undefined, now = Date.now()): StudentCalls {
+  const weekday = parseInt(settings.call_weekday, 10);
+  const months = Math.max(1, parseInt(settings.call_months, 10) || 3);
+  const [hh, mm] = (settings.call_time || '').split(':').map((x) => parseInt(x, 10));
+  const base = { months, weekdayLabel: WEEKDAYS[(weekday || 1) - 1] ?? '', time: settings.call_time };
+  const start = startIso ? new Date(startIso).getTime() : NaN;
+  if (!(weekday >= 1 && weekday <= 7) || Number.isNaN(hh) || Number.isNaN(mm) || Number.isNaN(start)) {
+    return { ...base, configured: false, total: 0, remaining: 0, number: 0, next: null, live: false, finished: false, until: null };
   }
-  return { configured: true, number: total, total, at: null, live: false, finished: true };
+  const s = romeParts(start);
+  const until = romeWallToUtc(s.y, s.m + months, s.d, s.h, s.mi);
+  const calls: number[] = [];
+  for (let i = 0; i < months * 31 + 7; i++) {
+    const day = new Date(Date.UTC(s.y, s.m - 1, s.d + i));
+    const wd = ((day.getUTCDay() + 6) % 7) + 1; // 1 = lunedì
+    if (wd !== weekday) continue;
+    const t = romeWallToUtc(day.getUTCFullYear(), day.getUTCMonth() + 1, day.getUTCDate(), hh, mm);
+    if (t >= start && t < until) calls.push(t);
+    if (t >= until) break;
+  }
+  const upcoming = calls.filter((t) => t + LIVE_WINDOW > now);
+  const next = upcoming[0] ?? null;
+  return {
+    ...base,
+    configured: true,
+    total: calls.length,
+    remaining: upcoming.length,
+    number: next ? calls.indexOf(next) + 1 : calls.length,
+    next: next ? new Date(next) : null,
+    live: next !== null && now >= next,
+    finished: upcoming.length === 0,
+    until: new Date(until),
+  };
 }
-
-const TZ = 'Europe/Rome';
 
 export function formatCallDate(d: Date): string {
   const day = d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', timeZone: TZ });
@@ -37,31 +90,12 @@ export function formatCallDate(d: Date): string {
   return `${day.charAt(0).toUpperCase()}${day.slice(1)} · ${time}`;
 }
 
+export function formatDay(d: Date): string {
+  return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: TZ });
+}
+
 export function splitCountdown(ms: number) {
   const s = Math.max(0, Math.floor(ms / 1000));
   const two = (n: number) => String(n).padStart(2, '0');
   return { d: two(Math.floor(s / 86400)), h: two(Math.floor((s % 86400) / 3600)), m: two(Math.floor((s % 3600) / 60)), s: two(s % 60) };
-}
-
-/** Converte una data ISO nel formato richiesto da <input type="datetime-local"> (ora italiana). */
-export function isoToLocalInput(iso: string): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  const parts = new Intl.DateTimeFormat('sv-SE', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(d);
-  return parts.replace(' ', 'T');
-}
-
-/** Converte il valore di <input type="datetime-local"> (inteso come ora italiana) in ISO. */
-export function localInputToIso(value: string): string {
-  if (!value) return '';
-  const [date, time] = value.split('T');
-  const [y, mo, da] = date.split('-').map(Number);
-  const [h, mi] = time.split(':').map(Number);
-  // Trova l'offset di Roma per quella data.
-  const guess = Date.UTC(y, mo - 1, da, h, mi);
-  const asRome = new Date(new Date(guess).toLocaleString('en-US', { timeZone: TZ }));
-  const asUtc = new Date(new Date(guess).toLocaleString('en-US', { timeZone: 'UTC' }));
-  const offset = asRome.getTime() - asUtc.getTime();
-  return new Date(guess - offset).toISOString();
 }

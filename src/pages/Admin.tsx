@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { Link, useNavigate } from 'react-router-dom';
 import { IconChevronDown, IconChevronUp, IconEye, IconPlus, IconSearch, IconTrash } from '../components/Icons';
 import { useAuth } from '../lib/auth';
-import { isoToLocalInput, localInputToIso } from '../lib/call';
-import { EMPTY_SETTINGS, fetchSettings } from '../lib/data';
+import { formatDay, studentCalls, WEEKDAYS } from '../lib/call';
+import { EMPTY_SETTINGS, fetchSettings, useSettings } from '../lib/data';
 import { supabase } from '../lib/supabase';
 import type { Lesson, Module, Profile, ProfileStatus, Resource, Settings } from '../lib/types';
 import { parseVideo } from '../lib/video';
@@ -70,6 +70,7 @@ function formatDate(iso: string) {
 
 function StudentsTab({ onPending }: { onPending: (n: number) => void }) {
   const { profile: me } = useAuth();
+  const settings = useSettings();
   const [rows, setRows] = useState<Profile[] | null>(null);
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [totalLessons, setTotalLessons] = useState(0);
@@ -166,7 +167,13 @@ function StudentsTab({ onPending }: { onPending: (n: number) => void }) {
                     <span className="student-avatar" aria-hidden="true">{(r.full_name || r.email).slice(0, 2).toUpperCase()}</span>
                     <span className="student-text">
                       <strong>{r.full_name || '—'}</strong>
-                      <span>{r.email} · {formatDate(r.created_at)}</span>
+                      <span>{r.email} · registrato il {formatDate(r.created_at)}</span>
+                      {r.status === 'active' && !r.is_admin && (() => {
+                        const c = studentCalls(settings, r.activated_at ?? r.created_at);
+                        return c.configured && c.until ? (
+                          <span className="student-calls">Call: {c.remaining} di {c.total} rimaste · fino al {formatDay(c.until)}</span>
+                        ) : null;
+                      })()}
                     </span>
                   </div>
                   <div className="student-progress">
@@ -503,13 +510,11 @@ function LessonsTab() {
 
 function SettingsTab() {
   const [s, setS] = useState<Settings>(EMPTY_SETTINGS);
-  const [firstLocal, setFirstLocal] = useState('');
   const [state, setState] = useState<'loading' | 'idle' | 'saving' | 'saved' | 'error'>('loading');
 
   useEffect(() => {
     fetchSettings(true).then((v) => {
       setS(v);
-      setFirstLocal(isoToLocalInput(v.call_first_at));
       setState('idle');
     });
   }, []);
@@ -517,13 +522,15 @@ function SettingsTab() {
   const save = async (e: FormEvent) => {
     e.preventDefault();
     setState('saving');
-    const values: Settings = { ...s, call_first_at: localInputToIso(firstLocal), call_count: String(Math.max(1, parseInt(s.call_count, 10) || 8)) };
+    const values: Settings = { ...s, call_months: String(Math.max(1, parseInt(s.call_months, 10) || 3)) };
     const rows = (Object.keys(values) as (keyof Settings)[]).map((key) => ({ key, value: values[key].trim() }));
     const { error } = await supabase.from('settings').upsert(rows);
     if (error) return setState('error');
     await fetchSettings(true);
     setState('saved');
   };
+
+  const example = studentCalls(s, new Date().toISOString());
 
   return (
     <>
@@ -538,15 +545,24 @@ function SettingsTab() {
           <span className="editor-title">Call settimanale</span>
           <div className="form-split">
             <label className="field">
-              Data e ora della prima call
-              <input type="datetime-local" value={firstLocal} onChange={(e) => setFirstLocal(e.target.value)} />
+              Giorno
+              <select value={s.call_weekday} onChange={(e) => setS({ ...s, call_weekday: e.target.value })}>
+                {WEEKDAYS.map((d, i) => <option key={d} value={String(i + 1)}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>)}
+              </select>
             </label>
             <label className="field">
-              Numero di call
-              <input type="number" min={1} max={52} value={s.call_count} onChange={(e) => setS({ ...s, call_count: e.target.value })} />
+              Ora (italiana)
+              <input type="time" value={s.call_time} onChange={(e) => setS({ ...s, call_time: e.target.value })} />
+            </label>
+            <label className="field">
+              Durata (mesi)
+              <input type="number" min={1} max={24} value={s.call_months} onChange={(e) => setS({ ...s, call_months: e.target.value })} />
             </label>
           </div>
-          <p className="muted small">Le call successive si calcolano da sole, una a settimana alla stessa ora. Il conto alla rovescia nella home si aggiorna da solo.</p>
+          <p className="muted small">
+            Ogni studente ha una call a settimana per {Math.max(1, parseInt(s.call_months, 10) || 3)} mesi, contati dal giorno in cui lo sblocchi.
+            {example.configured && ` Esempio: uno studente sbloccato oggi ha ${example.total} call, fino al ${example.until ? formatDay(example.until) : ''}.`}
+          </p>
           <label className="field">
             Link della call (Zoom, Google Meet…)
             <input type="url" value={s.meeting_url} placeholder="https://meet.google.com/…" onChange={(e) => setS({ ...s, meeting_url: e.target.value })} />

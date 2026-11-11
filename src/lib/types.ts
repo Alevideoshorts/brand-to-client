@@ -38,10 +38,12 @@ export interface Settings {
   meeting_url: string;
   slack_url: string;
   support_email: string;
-  /** Data e ora della prima call di gruppo (ISO). Le altre sono ogni 7 giorni. */
-  call_first_at: string;
-  /** Quante call settimanali in tutto (es. 8). */
-  call_count: string;
+  /** Giorno della call settimanale: 1 = lunedì … 7 = domenica. */
+  call_weekday: string;
+  /** Ora della call, ora italiana (es. "18:00"). */
+  call_time: string;
+  /** Per quanti mesi ogni studente ha le call, dal giorno dello sblocco (es. "3"). */
+  call_months: string;
 }
 
 export interface ModuleWithLessons extends Module {

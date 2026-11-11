@@ -9,6 +9,7 @@ export default function Pending() {
   const settings = useSettings();
   const navigate = useNavigate();
   const [checking, setChecking] = useState(false);
+  const months = Math.max(1, parseInt(settings.call_months, 10) || 3);
 
   // Controlla da solo ogni 30 secondi se l'accesso è stato sbloccato.
   useEffect(() => {
@@ -59,7 +60,7 @@ export default function Pending() {
             </li>
             <li className="step">
               <span className="step-num">03</span>
-              <span className="step-label">Inizia il modulo 00 del percorso</span>
+              <span className="step-label">Accesso al corso e a una call di gruppo a settimana per {months} {months === 1 ? 'mese' : 'mesi'}</span>
             </li>
           </ol>
         )}

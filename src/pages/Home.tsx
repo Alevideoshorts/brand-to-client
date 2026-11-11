@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Splash } from '../components/Guards';
 import { IconArrowRight, IconChat, IconExternal } from '../components/Icons';
 import { useAuth } from '../lib/auth';
-import { formatCallDate, nextCall, splitCountdown } from '../lib/call';
+import { formatCallDate, formatDay, splitCountdown, studentCalls } from '../lib/call';
 import { useCourse, useSettings, visibleLessons } from '../lib/data';
 
 function useNow(intervalMs = 1000) {
@@ -30,8 +30,8 @@ export default function Home() {
   const done = data ? lessons.filter((l) => data.done.has(l.id)).length : 0;
   const pct = total ? Math.round((done / total) * 100) : 0;
   const firstName = (profile?.full_name || '').trim().split(/\s+/)[0] || '';
-  const call = nextCall(settings, now);
-  const cd = call.at ? splitCountdown(call.at.getTime() - now) : null;
+  const call = studentCalls(settings, profile?.activated_at ?? profile?.created_at, now);
+  const cd = call.next ? splitCountdown(call.next.getTime() - now) : null;
 
   const logout = async () => {
     await signOut();
@@ -98,14 +98,21 @@ export default function Home() {
           <div className="hub-card">
             <span className="hub-num">03</span>
             <span className="hub-title">Call settimanale</span>
-            {!call.configured && <span className="hub-text">Le date delle call di gruppo arrivano a breve.</span>}
-            {call.finished && <span className="hub-text">Le {call.total} call di gruppo del percorso sono terminate.</span>}
-            {call.configured && !call.finished && call.at && (
+            <span className="hub-text">
+              Una call di gruppo a settimana per {call.months} {call.months === 1 ? 'mese' : 'mesi'}
+              {call.weekdayLabel && call.time ? `, ogni ${call.weekdayLabel} alle ${call.time}` : ''}.
+            </span>
+            {call.configured && (
+              <div className="calls-left">
+                <strong>{call.remaining}<span>/{call.total}</span></strong>
+                <span>{call.finished ? 'call disponibili: il tuo periodo è terminato' : `call ancora a tua disposizione${call.until ? `, fino al ${formatDay(call.until)}` : ''}`}</span>
+              </div>
+            )}
+            {call.configured && !call.finished && call.next && (
               <>
-                <span className="hub-text">Call {call.number} di {call.total} · Q&amp;A aperto con Alessandro</span>
                 <div className="next-call">
-                  <span className="label-caps">{call.live ? 'In corso adesso' : 'Prossima call'}</span>
-                  <strong>{formatCallDate(call.at)}</strong>
+                  <span className="label-caps">{call.live ? 'In corso adesso' : `Prossima call · ${call.number} di ${call.total}`}</span>
+                  <strong>{formatCallDate(call.next)}</strong>
                 </div>
                 {call.live ? (
                   <p className="live-now">La call è iniziata: entra subito.</p>
@@ -129,7 +136,7 @@ export default function Home() {
                 Entra nella call
               </a>
             ) : (
-              <span className="btn btn-outline btn-block hub-cta is-disabled" aria-disabled="true">{call.finished ? 'Call terminate' : 'Link in arrivo'}</span>
+              <span className="btn btn-outline btn-block hub-cta is-disabled" aria-disabled="true">{call.finished ? 'Periodo di call terminato' : 'Link in arrivo'}</span>
             )}
           </div>
         </div>
