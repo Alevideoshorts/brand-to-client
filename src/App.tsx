@@ -5,6 +5,7 @@ import Admin from './pages/Admin';
 import Course from './pages/Course';
 import ForgotPassword from './pages/ForgotPassword';
 import Home from './pages/Home';
+import { Privacy, Terms } from './pages/Legal';
 import Login from './pages/Login';
 import Pending from './pages/Pending';
 import Register from './pages/Register';
@@ -24,6 +25,8 @@ export default function App() {
           <Route path="/registrati" element={<PublicOnly><Register /></PublicOnly>} />
           <Route path="/password-dimenticata" element={<ForgotPassword />} />
           <Route path="/nuova-password" element={<ResetPassword />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/termini" element={<Terms />} />
           <Route path="/attesa" element={<RequireAuth><Pending /></RequireAuth>} />
           <Route path="/" element={<RequireMember><Home /></RequireMember>} />
           <Route path="/corso" element={<RequireMember><Course /></RequireMember>} />

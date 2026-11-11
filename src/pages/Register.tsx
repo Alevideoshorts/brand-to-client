@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
 import { IconArrowRight } from '../components/Icons';
+import { TERMS_VERSION } from '../lib/company';
 import { supabase } from '../lib/supabase';
 
 export default function Register() {
@@ -22,7 +23,7 @@ export default function Register() {
       return;
     }
     if (!accepted) {
-      setError('Per continuare devi accettare la Privacy Policy.');
+      setError('Per continuare devi accettare i Termini di utilizzo e l’Informativa privacy.');
       return;
     }
     setBusy(true);
@@ -31,7 +32,7 @@ export default function Register() {
       email: email.trim(),
       password,
       options: {
-        data: { full_name: `${firstName.trim()} ${lastName.trim()}`.trim() },
+        data: { full_name: `${firstName.trim()} ${lastName.trim()}`.trim(), terms_version: TERMS_VERSION },
         emailRedirectTo: `${window.location.origin}/attesa`,
       },
     });
@@ -78,8 +79,10 @@ export default function Register() {
         <label className="check">
           <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} />
           <span>
-            Ho letto e accetto la{' '}
-            <a className="link" href="https://www.brandtoclient.com/privacy-policy" target="_blank" rel="noreferrer">Privacy Policy</a>
+            Ho letto e accetto i{' '}
+            <a className="link" href="/termini" target="_blank" rel="noreferrer">Termini di utilizzo</a>
+            {' '}e l’
+            <a className="link" href="/privacy" target="_blank" rel="noreferrer">Informativa privacy</a>
           </span>
         </label>
         {error && <p className="form-error" role="alert">{error}</p>}

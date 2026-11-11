@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { IconCheck } from '../components/Icons';
+import LegalFooter from '../components/LegalFooter';
 import { isMember, useAuth } from '../lib/auth';
 import { useSettings } from '../lib/data';
 
@@ -78,6 +79,7 @@ export default function Pending() {
           <button type="button" onClick={logout}>Esci</button>
         </div>
       </div>
+      <LegalFooter compact />
     </div>
   );
 }

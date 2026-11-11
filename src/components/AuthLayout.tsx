@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import LegalFooter from './LegalFooter';
 
 export default function AuthLayout({ title, subtitle, wide = false, children }: { title: string; subtitle?: string; wide?: boolean; children: ReactNode }) {
   return (
@@ -15,6 +16,7 @@ export default function AuthLayout({ title, subtitle, wide = false, children }: 
         </div>
         {children}
       </div>
+      <LegalFooter compact />
     </div>
   );
 }

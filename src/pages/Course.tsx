@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Splash } from '../components/Guards';
+import LegalFooter from '../components/LegalFooter';
 import {
   IconArrowRight, IconCheck, IconChevronDown, IconChevronUp, IconClock, IconDownload, IconFile, IconHome, IconPlay, IconTarget,
 } from '../components/Icons';
@@ -160,6 +161,7 @@ export default function Course() {
         <span className="aside-user-name">{profile?.full_name || profile?.email}</span>
         <button type="button" className="aside-logout" onClick={logout}>Esci</button>
       </div>
+      <LegalFooter compact />
     </aside>
   );
 
