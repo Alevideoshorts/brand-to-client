@@ -64,7 +64,7 @@ export function Privacy() {
       <p>I dati sono trattati dal titolare e, per conto del titolare, da fornitori che agiscono come responsabili del trattamento:</p>
       <ul>
         <li><strong>Supabase Inc.</strong>: database e gestione degli account. I dati sono conservati su server nell’Unione Europea (Francoforte, Germania).</li>
-        <li><strong>Vercel Inc.</strong>: pubblicazione del sito della piattaforma. Può comportare un trasferimento di dati tecnici negli Stati Uniti, che avviene sulla base dell’EU-U.S. Data Privacy Framework e/o delle clausole contrattuali standard approvate dalla Commissione Europea.</li>
+        <li><strong>Cloudflare, Inc.</strong>: pubblicazione e distribuzione del sito della piattaforma. Può comportare un trasferimento di dati tecnici negli Stati Uniti, che avviene sulla base dell’EU-U.S. Data Privacy Framework e/o delle clausole contrattuali standard approvate dalla Commissione Europea.</li>
         <li><strong>BunnyWay d.o.o.</strong> (bunny.net, Slovenia): archiviazione e trasmissione delle videolezioni.</li>
       </ul>
       <p>

@@ -2,7 +2,8 @@
 
 Piattaforma del percorso Brand To Client: gli studenti si registrano, l'admin sblocca l'accesso e gli studenti seguono le lezioni video.
 
-- **Sito:** React + Vite, pubblicato su Vercel (ogni modifica su `main` va online da sola).
+- **Sito:** React + Vite, pubblicato su Cloudflare Pages (progetto `brand-to-client`, ogni modifica su `main` va online da sola). Dominio `corso.brandtoclient.com` collegato con un record CNAME su Wix verso `brand-to-client.pages.dev`.
+- **Keep-alive Supabase:** GitHub Actions (`.github/workflows/keep-alive.yml`) legge la tabella `heartbeat` due volte al giorno, così il progetto gratuito non va in pausa.
 - **Account e dati:** Supabase (progetto `brand-to-client`, Francoforte). Le regole di accesso sono nel database (`supabase/schema.sql`).
 - **Video:** Bunny Stream (consigliato, con domini autorizzati), oppure Vimeo. Nel pannello admin si incolla il link del video.
 
