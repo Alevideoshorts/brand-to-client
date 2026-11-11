@@ -36,7 +36,7 @@ export interface Lesson {
 
 export interface Settings {
   meeting_url: string;
-  slack_url: string;
+  telegram_url: string;
   support_email: string;
   /** Giorno della call settimanale: 1 = lunedì … 7 = domenica. */
   call_weekday: string;

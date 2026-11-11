@@ -68,8 +68,9 @@ export function Privacy() {
         <li><strong>BunnyWay d.o.o.</strong> (bunny.net, Slovenia): archiviazione e trasmissione delle videolezioni.</li>
       </ul>
       <p>
-        Le call di gruppo e la community si svolgono su servizi esterni (ad esempio Google Meet, Zoom e Slack). Quando li utilizzi,
-        si applicano anche le informative privacy di questi servizi.
+        Le call di gruppo e la community si svolgono su servizi esterni (ad esempio Google Meet o Zoom per le call e Telegram per il gruppo
+        degli studenti). Quando li utilizzi, si applicano anche le informative privacy di questi servizi. Nel gruppo Telegram gli altri
+        partecipanti vedono il tuo nome e la tua immagine profilo: dalle impostazioni privacy di Telegram puoi nascondere il tuo numero di telefono.
         I dati non sono venduti né diffusi. Possono essere comunicati alle autorità solo se richiesto dalla legge.
       </p>
 
@@ -130,7 +131,7 @@ export function Terms() {
       <ul>
         <li>Le videolezioni e i materiali del percorso pubblicati nella piattaforma, <strong>senza scadenza</strong> (accesso “a vita”), per tutto il tempo in cui la piattaforma e il percorso restano attivi. Se in futuro il percorso dovesse essere chiuso, ti avviseremo con congruo preavviso.</li>
         <li>Una call di gruppo a settimana per 3 mesi a partire dalla data di attivazione dell’accesso, nel giorno e nell’orario indicati nella piattaforma. Le call a cui non partecipi non si recuperano.</li>
-        <li>L’accesso alla community degli studenti su Slack, secondo quanto previsto dal percorso acquistato.</li>
+        <li>L’accesso al gruppo Telegram degli studenti, secondo quanto previsto dal percorso acquistato.</li>
       </ul>
       <p>Possiamo aggiornare, migliorare o riorganizzare lezioni e materiali, mantenendo la sostanza del percorso.</p>
 

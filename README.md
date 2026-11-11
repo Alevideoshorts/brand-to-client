@@ -10,9 +10,9 @@ Piattaforma del percorso Brand To Client: gli studenti si registrano, l'admin sb
 
 - `/accedi`, `/registrati`, `/password-dimenticata`, `/nuova-password`
 - `/attesa` – lo studente registrato aspetta lo sblocco
-- `/` – home con 3 scelte: corso, gruppo Slack, call settimanale (conto alla rovescia)
+- `/` – home con 3 scelte: corso, gruppo Telegram, call settimanale (conto alla rovescia)
 - `/corso/:lezione` – moduli a tendina a sinistra (uno aperto alla volta), video e lezione a destra. La lezione si segna come vista da sola quando il video arriva alla fine.
-- `/admin` – studenti (sblocca/blocca), moduli e lezioni, impostazioni (prima call, numero di call, link call, Slack, email supporto)
+- `/admin` – studenti (sblocca/blocca), moduli e lezioni, impostazioni (prima call, numero di call, link call, Telegram, email supporto)
 
 ## Sviluppo
 

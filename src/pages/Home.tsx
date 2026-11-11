@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Splash } from '../components/Guards';
 import LegalFooter from '../components/LegalFooter';
-import { IconArrowRight, IconChat, IconExternal } from '../components/Icons';
+import { IconArrowRight, IconExternal, IconSend } from '../components/Icons';
 import { useAuth } from '../lib/auth';
 import { formatCallDate, formatDay, splitCountdown, studentCalls } from '../lib/call';
 import { useCourse, useSettings, visibleLessons } from '../lib/data';
@@ -78,20 +78,20 @@ export default function Home() {
             </div>
           </Link>
 
-          {settings.slack_url ? (
-            <a href={settings.slack_url} target="_blank" rel="noreferrer" className="hub-card">
+          {settings.telegram_url ? (
+            <a href={settings.telegram_url} target="_blank" rel="noreferrer" className="hub-card">
               <span className="hub-num">02</span>
-              <span className="hub-icon"><IconChat size={28} /></span>
-              <span className="hub-title">Gruppo Slack</span>
-              <span className="hub-text">La community degli studenti: domande tra una call e l’altra, confronto e risultati.</span>
-              <span className="btn btn-outline btn-block hub-cta">Apri Slack <IconExternal size={18} /></span>
+              <span className="hub-icon"><IconSend size={26} /></span>
+              <span className="hub-title">Gruppo Telegram</span>
+              <span className="hub-text">La community degli studenti: domande tra una call e l’altra, confronto e risultati, divisi per argomento.</span>
+              <span className="btn btn-outline btn-block hub-cta">Apri Telegram <IconExternal size={18} /></span>
             </a>
           ) : (
             <div className="hub-card">
               <span className="hub-num">02</span>
-              <span className="hub-icon"><IconChat size={28} /></span>
-              <span className="hub-title">Gruppo Slack</span>
-              <span className="hub-text">La community degli studenti: domande tra una call e l’altra, confronto e risultati.</span>
+              <span className="hub-icon"><IconSend size={26} /></span>
+              <span className="hub-title">Gruppo Telegram</span>
+              <span className="hub-text">La community degli studenti: domande tra una call e l’altra, confronto e risultati, divisi per argomento.</span>
               <span className="btn btn-outline btn-block hub-cta is-disabled" aria-disabled="true">Link in arrivo</span>
             </div>
           )}

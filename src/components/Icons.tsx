@@ -34,6 +34,7 @@ export const IconStar = ({ filled, ...p }: P & { filled?: boolean }) => (
 );
 export const IconShield = (p: P) => (<svg {...base(p)}><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z" /></svg>);
 export const IconVideo = (p: P) => (<svg {...base(p)}><rect x="3" y="6" width="13" height="12" rx="2" /><path d="M16 10l5-3v10l-5-3" /></svg>);
+export const IconSend = (p: P) => (<svg {...base(p)}><path d="M21 3L3 10.5l7 2.5 2.5 7z" /><path d="M21 3l-11 10" /></svg>);
 export const IconChat = (p: P) => (<svg {...base(p)}><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.6A8 8 0 1 1 21 12z" /></svg>);
 export const IconCalendar = (p: P) => (<svg {...base(p)}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>);
 export const IconUsers = (p: P) => (<svg {...base(p)}><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.5 3.5 5.2" /></svg>);

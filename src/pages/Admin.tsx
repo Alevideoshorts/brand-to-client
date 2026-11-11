@@ -536,7 +536,7 @@ function SettingsTab() {
     <>
       <div className="stack-sm">
         <h1 className="admin-h1">Impostazioni</h1>
-        <p className="admin-lead">Call settimanale, Slack ed email di supporto: è quello che gli studenti vedono nella home.</p>
+        <p className="admin-lead">Call settimanale, gruppo Telegram ed email di supporto: è quello che gli studenti vedono nella home.</p>
       </div>
       {state === 'loading' ? (
         <p className="muted">Caricamento…</p>
@@ -569,8 +569,8 @@ function SettingsTab() {
           </label>
           <span className="editor-title">Community e supporto</span>
           <label className="field">
-            Link di invito al gruppo Slack
-            <input type="url" value={s.slack_url} placeholder="https://join.slack.com/…" onChange={(e) => setS({ ...s, slack_url: e.target.value })} />
+            Link di invito al gruppo Telegram
+            <input type="url" value={s.telegram_url} placeholder="https://t.me/+…" onChange={(e) => setS({ ...s, telegram_url: e.target.value })} />
           </label>
           <label className="field">
             Email di supporto
