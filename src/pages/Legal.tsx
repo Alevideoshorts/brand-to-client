@@ -75,8 +75,8 @@ export function Privacy() {
 
       <h2>5. Per quanto tempo li conserviamo</h2>
       <p>
-        Conserviamo i dati dell’account per tutta la durata del tuo accesso al percorso e per i 12 mesi successivi alla sua conclusione,
-        poi li cancelliamo, salvo che tu ne chieda prima la cancellazione. I dati necessari per obblighi fiscali e contabili sono conservati
+        L’accesso al percorso non ha scadenza: conserviamo i dati dell’account finché il tuo account resta attivo e per i 12 mesi successivi
+        alla sua chiusura o disattivazione, poi li cancelliamo. Puoi chiederne la cancellazione in qualsiasi momento. I dati necessari per obblighi fiscali e contabili sono conservati
         per il tempo previsto dalla legge (di regola 10 anni). I dati tecnici registrati dai fornitori sono conservati per periodi brevi,
         secondo le loro politiche.
       </p>
@@ -128,9 +128,9 @@ export function Terms() {
 
       <h2>3. Cosa comprende l’accesso</h2>
       <ul>
-        <li>Le videolezioni e i materiali del percorso pubblicati nella piattaforma, per la durata prevista dall’accordo di acquisto.</li>
+        <li>Le videolezioni e i materiali del percorso pubblicati nella piattaforma, <strong>senza scadenza</strong> (accesso “a vita”), per tutto il tempo in cui la piattaforma e il percorso restano attivi. Se in futuro il percorso dovesse essere chiuso, ti avviseremo con congruo preavviso.</li>
         <li>Una call di gruppo a settimana per 3 mesi a partire dalla data di attivazione dell’accesso, nel giorno e nell’orario indicati nella piattaforma. Le call a cui non partecipi non si recuperano.</li>
-        <li>L’accesso alla community degli studenti su Slack, per la durata del percorso.</li>
+        <li>L’accesso alla community degli studenti su Slack, secondo quanto previsto dal percorso acquistato.</li>
       </ul>
       <p>Possiamo aggiornare, migliorare o riorganizzare lezioni e materiali, mantenendo la sostanza del percorso.</p>
 
