@@ -347,3 +347,7 @@ a.hub-card.primary:hover { border-color: var(--red-text); }
 .legal-main ul { margin: 0 0 14px; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
 .legal-main a { color: var(--red-text); }
 .legal-main strong { color: #fff; }
+.pw-wrap { position: relative; display: block; }
+.pw-wrap input { width: 100%; padding-right: 54px; }
+.pw-toggle { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 4px; background: transparent; color: var(--muted-2); }
+.pw-toggle:hover { color: #fff; background: var(--card-2); }

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
+import PasswordInput from '../components/PasswordInput';
 import { IconArrowRight } from '../components/Icons';
 import { supabase } from '../lib/supabase';
 
@@ -36,7 +37,7 @@ export default function Login() {
         </label>
         <label className="field">
           Password
-          <input type="password" autoComplete="current-password" required placeholder="La tua password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <PasswordInput autoComplete="current-password" required placeholder="La tua password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
         {error && <p className="form-error" role="alert">{error}</p>}
         <button type="submit" className="btn btn-red btn-block" disabled={busy}>

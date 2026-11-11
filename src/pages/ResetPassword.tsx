@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
+import PasswordInput from '../components/PasswordInput';
 import { useAuth } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 
@@ -41,7 +42,7 @@ export default function ResetPassword() {
       <form className="form" onSubmit={submit}>
         <label className="field">
           Nuova password
-          <input type="password" autoComplete="new-password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+          <PasswordInput autoComplete="new-password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
         {error && <p className="form-error" role="alert">{error}</p>}
         <button type="submit" className="btn btn-red btn-block" disabled={busy || loading}>

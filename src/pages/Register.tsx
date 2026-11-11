@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
+import PasswordInput from '../components/PasswordInput';
 import { IconArrowRight } from '../components/Icons';
 import { TERMS_VERSION } from '../lib/company';
 import { supabase } from '../lib/supabase';
@@ -74,7 +75,7 @@ export default function Register() {
         </label>
         <label className="field">
           Password
-          <input type="password" autoComplete="new-password" required minLength={8} placeholder="Almeno 8 caratteri" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <PasswordInput autoComplete="new-password" required minLength={8} placeholder="Almeno 8 caratteri" value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
         <label className="check">
           <input type="checkbox" checked={accepted} onChange={(e) => setAccepted(e.target.checked)} />
