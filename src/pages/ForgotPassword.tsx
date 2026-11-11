@@ -26,14 +26,14 @@ export default function ForgotPassword() {
 
   if (sent) {
     return (
-      <AuthLayout title="Email inviata" subtitle={`Se ${email} è registrata, riceverai un link per scegliere una nuova password. Controlla anche lo spam.`}>
+      <AuthLayout backTo="/accedi" title="Email inviata" subtitle={`Se ${email} è registrata, riceverai un link per scegliere una nuova password. Controlla anche lo spam.`}>
         <Link to="/accedi" className="btn btn-red btn-block">Torna all’accesso</Link>
       </AuthLayout>
     );
   }
 
   return (
-    <AuthLayout title="Password dimenticata" subtitle="Inserisci la tua email: ti mandiamo un link per sceglierne una nuova.">
+    <AuthLayout backTo="/accedi" title="Password dimenticata" subtitle="Inserisci la tua email: ti mandiamo un link per sceglierne una nuova.">
       <form className="form" onSubmit={submit}>
         <label className="field">
           Email

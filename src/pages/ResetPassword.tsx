@@ -31,14 +31,14 @@ export default function ResetPassword() {
 
   if (!loading && !session) {
     return (
-      <AuthLayout title="Link scaduto" subtitle="Il link per reimpostare la password non è più valido. Richiedine uno nuovo.">
+      <AuthLayout backTo="/accedi" title="Link scaduto" subtitle="Il link per reimpostare la password non è più valido. Richiedine uno nuovo.">
         <Link to="/password-dimenticata" className="btn btn-red btn-block">Richiedi un nuovo link</Link>
       </AuthLayout>
     );
   }
 
   return (
-    <AuthLayout title="Scegli una nuova password" subtitle="Usa almeno 8 caratteri.">
+    <AuthLayout backTo="/accedi" title="Scegli una nuova password" subtitle="Usa almeno 8 caratteri.">
       <form className="form" onSubmit={submit}>
         <label className="field">
           Nuova password

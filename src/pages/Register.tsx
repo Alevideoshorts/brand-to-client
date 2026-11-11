@@ -50,14 +50,14 @@ export default function Register() {
 
   if (checkEmail) {
     return (
-      <AuthLayout title="Controlla la tua email" subtitle={`Ti abbiamo mandato un link di conferma a ${email}. Aprilo per attivare il tuo account, poi entra.`}>
+      <AuthLayout backTo="/accedi" title="Controlla la tua email" subtitle={`Ti abbiamo mandato un link di conferma a ${email}. Aprilo per attivare il tuo account, poi entra.`}>
         <Link to="/accedi" className="btn btn-red btn-block">Vai all’accesso</Link>
       </AuthLayout>
     );
   }
 
   return (
-    <AuthLayout wide title="Crea il tuo accesso" subtitle="Usa la stessa email dell’iscrizione: appena verifichiamo il tuo pagamento, il percorso si apre.">
+    <AuthLayout backTo="/accedi" wide title="Crea il tuo accesso" subtitle="Usa la stessa email dell’iscrizione: appena verifichiamo il tuo pagamento, il percorso si apre.">
       <form className="form" onSubmit={submit}>
         <div className="form-split">
           <label className="field">

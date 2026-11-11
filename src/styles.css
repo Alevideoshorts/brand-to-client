@@ -351,3 +351,5 @@ a.hub-card.primary:hover { border-color: var(--red-text); }
 .pw-wrap input { width: 100%; padding-right: 54px; }
 .pw-toggle { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 4px; background: transparent; color: var(--muted-2); }
 .pw-toggle:hover { color: #fff; background: var(--card-2); }
+.auth-back { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin: -18px 0 -10px -6px; padding: 0 10px 0 6px; border-radius: 4px; font-family: var(--cond); font-size: 17px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; }
+.auth-back:hover { color: #fff; background: var(--card-2); }
