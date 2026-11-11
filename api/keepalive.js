@@ -9,11 +9,18 @@ const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishabl
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/heartbeat?select=id&limit=1`, {
-      headers: { apikey: SUPABASE_KEY },
-    });
-    const ok = r.ok;
-    res.status(ok ? 200 : 502).json({ ok, status: r.status, at: new Date().toISOString() });
+    // Tre letture a qualche secondo di distanza: Supabase considera "attivo"
+    // un progetto che riceve qualche richiesta al giorno.
+    const statuses = [];
+    for (let i = 0; i < 3; i++) {
+      if (i) await new Promise((done) => setTimeout(done, 2000));
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/heartbeat?select=id&limit=1`, {
+        headers: { apikey: SUPABASE_KEY },
+      });
+      statuses.push(r.status);
+    }
+    const ok = statuses.every((s) => s >= 200 && s < 300);
+    res.status(ok ? 200 : 502).json({ ok, statuses, at: new Date().toISOString() });
   } catch (err) {
     res.status(502).json({ ok: false, error: String(err), at: new Date().toISOString() });
   }
