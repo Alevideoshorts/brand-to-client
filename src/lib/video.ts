@@ -47,9 +47,3 @@ export function parseVideo(raw: string): VideoSource | null {
   }
   return null;
 }
-
-export function withAutoplay(source: VideoSource, autoplay: boolean): string {
-  if (!autoplay || source.kind !== 'iframe') return source.src;
-  if (source.provider === 'Bunny Stream') return source.src.replace('autoplay=false', 'autoplay=true');
-  return source.src + (source.src.includes('?') ? '&' : '?') + 'autoplay=1';
-}

@@ -27,6 +27,7 @@ export interface Lesson {
   title: string;
   description: string;
   video_url: string;
+  action: string;
   transcript: string;
   resources: Resource[];
   position: number;
@@ -35,9 +36,12 @@ export interface Lesson {
 
 export interface Settings {
   meeting_url: string;
-  meeting_when: string;
   slack_url: string;
   support_email: string;
+  /** Data e ora della prima call di gruppo (ISO). Le altre sono ogni 7 giorni. */
+  call_first_at: string;
+  /** Quante call settimanali in tutto (es. 8). */
+  call_count: string;
 }
 
 export interface ModuleWithLessons extends Module {

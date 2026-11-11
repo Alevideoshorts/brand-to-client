@@ -1,14 +1,19 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { PublicOnly, RequireAdmin, RequireAuth, RequireMember } from './components/Guards';
 import { AuthProvider } from './lib/auth';
 import Admin from './pages/Admin';
-import Courses from './pages/Courses';
+import Course from './pages/Course';
 import ForgotPassword from './pages/ForgotPassword';
-import Lesson from './pages/Lesson';
+import Home from './pages/Home';
 import Login from './pages/Login';
 import Pending from './pages/Pending';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
+
+function LegacyLesson() {
+  const { id } = useParams();
+  return <Navigate to={`/corso/${id ?? ''}`} replace />;
+}
 
 export default function App() {
   return (
@@ -20,8 +25,10 @@ export default function App() {
           <Route path="/password-dimenticata" element={<ForgotPassword />} />
           <Route path="/nuova-password" element={<ResetPassword />} />
           <Route path="/attesa" element={<RequireAuth><Pending /></RequireAuth>} />
-          <Route path="/" element={<RequireMember><Courses /></RequireMember>} />
-          <Route path="/lezione/:id" element={<RequireMember><Lesson /></RequireMember>} />
+          <Route path="/" element={<RequireMember><Home /></RequireMember>} />
+          <Route path="/corso" element={<RequireMember><Course /></RequireMember>} />
+          <Route path="/corso/:id" element={<RequireMember><Course /></RequireMember>} />
+          <Route path="/lezione/:id" element={<LegacyLesson />} />
           <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

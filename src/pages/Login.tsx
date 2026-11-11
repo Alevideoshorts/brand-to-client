@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
+import { IconArrowRight } from '../components/Icons';
 import { supabase } from '../lib/supabase';
 
 export default function Login() {
@@ -27,7 +28,7 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout title="Accedi alla piattaforma" subtitle="Lezioni, call di gruppo e community in un unico posto.">
+    <AuthLayout title="Entra nel tuo percorso" subtitle="Usa l’email con cui ti sei iscritto a Brand To Client.">
       <form className="form" onSubmit={submit}>
         <label className="field">
           Email
@@ -37,16 +38,15 @@ export default function Login() {
           Password
           <input type="password" autoComplete="current-password" required placeholder="La tua password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
-        <div className="form-row-end">
-          <Link to="/password-dimenticata" className="link">Password dimenticata?</Link>
-        </div>
         {error && <p className="form-error" role="alert">{error}</p>}
-        <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
-          {busy ? 'Accesso in corso…' : 'Accedi'}
+        <button type="submit" className="btn btn-red btn-block" disabled={busy}>
+          {busy ? 'Accesso…' : <>Entra <IconArrowRight size={20} strokeWidth={2.4} /></>}
         </button>
+        <Link to="/password-dimenticata" className="link auth-forgot">Hai dimenticato la password?</Link>
       </form>
+      <div className="auth-sep" />
       <p className="auth-switch">
-        Non hai un account? <Link to="/registrati" className="link">Registrati</Link>
+        Prima volta qui? <Link to="/registrati" className="link">Crea il tuo account</Link>
       </p>
     </AuthLayout>
   );

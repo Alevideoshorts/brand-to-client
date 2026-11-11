@@ -77,3 +77,7 @@ create policy lessons_admin_delete on public.lessons for delete to authenticated
 -- (lesson_progress, lesson_notes, lesson_favorites, user_state) — vedi migrazione initial_schema.
 
 -- Impostazioni: meeting_url, meeting_when, slack_url, support_email (lette da tutti gli utenti registrati, modificate solo dall'admin).
+
+-- Migrazione lesson_action_and_call_settings:
+-- lessons.action ("L'azione di oggi") + impostazioni call_first_at / call_count.
+alter table public.lessons add column if not exists action text not null default '';

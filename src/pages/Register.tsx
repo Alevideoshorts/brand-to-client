@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
+import { IconArrowRight } from '../components/Icons';
 import { supabase } from '../lib/supabase';
 
 export default function Register() {
@@ -47,17 +48,14 @@ export default function Register() {
 
   if (checkEmail) {
     return (
-      <AuthLayout title="Controlla la tua email" subtitle={`Ti abbiamo mandato un link di conferma a ${email}. Aprilo per attivare il tuo account, poi accedi.`}>
-        <Link to="/accedi" className="btn btn-primary btn-block">Vai all’accesso</Link>
+      <AuthLayout title="Controlla la tua email" subtitle={`Ti abbiamo mandato un link di conferma a ${email}. Aprilo per attivare il tuo account, poi entra.`}>
+        <Link to="/accedi" className="btn btn-red btn-block">Vai all’accesso</Link>
       </AuthLayout>
     );
   }
 
   return (
-    <AuthLayout
-      title="Crea il tuo account"
-      subtitle="Registrati con la stessa email che hai usato per l’iscrizione. Appena il tuo accesso viene attivato, trovi qui il corso."
-    >
+    <AuthLayout wide title="Crea il tuo accesso" subtitle="Usa la stessa email dell’iscrizione: appena verifichiamo il tuo pagamento, il percorso si apre.">
       <form className="form" onSubmit={submit}>
         <div className="form-split">
           <label className="field">
@@ -85,12 +83,13 @@ export default function Register() {
           </span>
         </label>
         {error && <p className="form-error" role="alert">{error}</p>}
-        <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
-          {busy ? 'Creazione in corso…' : 'Crea account'}
+        <button type="submit" className="btn btn-red btn-block" disabled={busy}>
+          {busy ? 'Creazione…' : <>Crea l’accesso <IconArrowRight size={20} strokeWidth={2.4} /></>}
         </button>
       </form>
+      <div className="auth-sep" />
       <p className="auth-switch">
-        Hai già un account? <Link to="/accedi" className="link">Accedi</Link>
+        Hai già un accesso? <Link to="/accedi" className="link">Entra</Link>
       </p>
     </AuthLayout>
   );

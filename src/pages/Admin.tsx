@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
-import Header from '../components/Header';
-import { IconChevronDown, IconChevronUp, IconLock, IconLockOpen, IconPlus, IconSearch, IconTrash } from '../components/Icons';
+import { Link, useNavigate } from 'react-router-dom';
+import { IconChevronDown, IconChevronUp, IconEye, IconPlus, IconSearch, IconTrash } from '../components/Icons';
 import { useAuth } from '../lib/auth';
+import { isoToLocalInput, localInputToIso } from '../lib/call';
 import { EMPTY_SETTINGS, fetchSettings } from '../lib/data';
 import { supabase } from '../lib/supabase';
 import type { Lesson, Module, Profile, ProfileStatus, Resource, Settings } from '../lib/types';
@@ -12,22 +13,41 @@ type Tab = 'studenti' | 'lezioni' | 'impostazioni';
 export default function Admin() {
   const [tab, setTab] = useState<Tab>('studenti');
   const [pendingCount, setPendingCount] = useState(0);
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const logout = async () => {
+    await signOut();
+    navigate('/accedi');
+  };
+
+  const items: [Tab, string][] = [['studenti', 'Studenti'], ['lezioni', 'Moduli e lezioni'], ['impostazioni', 'Impostazioni']];
 
   return (
-    <div className="page">
-      <Header admin />
-      <main className="container stack-lg">
-        <div className="stack-sm">
-          <h1 className="h1">Pannello admin</h1>
-          <p className="lead">Sblocca gli studenti e gestisci le lezioni del corso. Questa pagina la vedi solo tu.</p>
+    <div className="admin">
+      <aside className="admin-aside">
+        <Link to="/" className="aside-brand">
+          <img src="/logo.png" alt="Logo InfoFormatVirale" width={42} height={42} />
+          <span className="stack-sm" style={{ gap: 0 }}>
+            <span>Brand To Client</span>
+            <span className="admin-role">Admin</span>
+          </span>
+        </Link>
+        <nav className="admin-nav" aria-label="Sezioni admin">
+          {items.map(([t, label]) => (
+            <button key={t} type="button" className={tab === t ? 'aside-link active' : 'aside-link'} aria-pressed={tab === t} onClick={() => setTab(t)}>
+              {label}
+              {t === 'studenti' && pendingCount > 0 && <span className="admin-badge">{pendingCount}</span>}
+            </button>
+          ))}
+        </nav>
+        <div style={{ flex: '1 1 auto' }} />
+        <div className="stack-sm" style={{ padding: '0 12px' }}>
+          <Link to="/" className="btn btn-outline btn-sm"><IconEye size={16} /> Vedi come studente</Link>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={logout}>Esci</button>
         </div>
-        <div className="tabs" role="group" aria-label="Sezioni del pannello">
-          <button type="button" className={tab === 'studenti' ? 'tab active' : 'tab'} aria-pressed={tab === 'studenti'} onClick={() => setTab('studenti')}>
-            Studenti {pendingCount > 0 && <span className="badge">{pendingCount}</span>}
-          </button>
-          <button type="button" className={tab === 'lezioni' ? 'tab active' : 'tab'} aria-pressed={tab === 'lezioni'} onClick={() => setTab('lezioni')}>Lezioni</button>
-          <button type="button" className={tab === 'impostazioni' ? 'tab active' : 'tab'} aria-pressed={tab === 'impostazioni'} onClick={() => setTab('impostazioni')}>Impostazioni</button>
-        </div>
+      </aside>
+      <main className="admin-main">
         {tab === 'studenti' && <StudentsTab onPending={setPendingCount} />}
         {tab === 'lezioni' && <LessonsTab />}
         {tab === 'impostazioni' && <SettingsTab />}
@@ -106,89 +126,83 @@ function StudentsTab({ onPending }: { onPending: (n: number) => void }) {
     .filter((r) => filter === 'tutti' || r.status === filter)
     .filter((r) => !q || r.full_name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q));
 
-  if (!rows) return <p className="muted">Caricamento studenti…</p>;
-
   return (
-    <div className="stack-lg">
-      <div className="stats">
-        <div className="stat"><span>Iscritti totali</span><strong>{counts.tutti}</strong></div>
-        <div className="stat stat-red"><span>In attesa di sblocco</span><strong>{counts.pending}</strong></div>
-        <div className="stat"><span>Con accesso attivo</span><strong>{counts.active}</strong></div>
+    <>
+      <div className="stack-sm">
+        <h1 className="admin-h1">Studenti</h1>
+        <p className="admin-lead">Chi si registra entra qui “da sbloccare”. Premi Sblocca e il percorso si apre.</p>
       </div>
-
-      <div className="toolbar">
-        <div className="chips">
-          {([['tutti', 'Tutti'], ['pending', 'In attesa'], ['active', 'Attivi'], ['blocked', 'Bloccati']] as [Filter, string][]).map(([f, label]) => (
-            <button key={f} type="button" className={filter === f ? 'pill active' : 'pill'} aria-pressed={filter === f} onClick={() => setFilter(f)}>
-              {label} ({counts[f]})
-            </button>
-          ))}
-        </div>
-        <label className="search">
-          <IconSearch size={18} />
-          <input type="search" aria-label="Cerca studente" placeholder="Cerca per nome o email" value={query} onChange={(e) => setQuery(e.target.value)} />
-        </label>
-      </div>
-
-      {error && <p className="form-error" role="alert">{error}</p>}
-
-      <div className="table-box">
-        <div className="table">
-          <div className="trow thead">
-            <span>Studente</span><span>Registrato il</span><span>Avanzamento</span><span>Stato</span><span>Azione</span>
+      {!rows ? (
+        <p className="muted">Caricamento studenti…</p>
+      ) : (
+        <>
+          <div className="stat-row">
+            <div className="stat-cell"><strong>{counts.tutti}</strong><span>iscritti</span></div>
+            <div className="stat-cell red"><strong>{counts.pending}</strong><span>da sbloccare</span></div>
+            <div className="stat-cell"><strong>{counts.active}</strong><span>nel percorso</span></div>
           </div>
-          {list.length === 0 && <p className="table-empty">{students.length === 0 ? 'Ancora nessuno studente registrato.' : 'Nessuno studente in questa lista.'}</p>}
-          {list.map((r) => {
-            const done = progress[r.id] ?? 0;
-            const pct = totalLessons ? Math.min(100, Math.round((done / totalLessons) * 100)) : 0;
-            return (
-              <div className="trow" key={r.id}>
-                <div className="who">
-                  <span className="who-avatar" aria-hidden="true">{(r.full_name || r.email).slice(0, 2).toUpperCase()}</span>
-                  <span className="who-text">
-                    <strong>{r.full_name || '—'}</strong>
-                    <span>{r.email}</span>
+          <div className="toolbar">
+            <div className="filters">
+              {([['tutti', 'Tutti'], ['pending', 'Da sbloccare'], ['active', 'Nel percorso'], ['blocked', 'Bloccati']] as [Filter, string][]).map(([f, label]) => (
+                <button key={f} type="button" className={filter === f ? 'fbtn active' : 'fbtn'} aria-pressed={filter === f} onClick={() => setFilter(f)}>
+                  {label} ({counts[f]})
+                </button>
+              ))}
+            </div>
+            <label className="search">
+              <IconSearch size={18} />
+              <input type="search" aria-label="Cerca studente" placeholder="Cerca per nome o email" value={query} onChange={(e) => setQuery(e.target.value)} />
+            </label>
+          </div>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <div className="students">
+            {list.length === 0 && <p className="empty-row">{students.length === 0 ? 'Ancora nessuno studente registrato.' : 'Nessuno studente in questa lista.'}</p>}
+            {list.map((r) => {
+              const done = progress[r.id] ?? 0;
+              const pct = totalLessons ? Math.min(100, Math.round((done / totalLessons) * 100)) : 0;
+              return (
+                <div className="student" key={r.id}>
+                  <div className="student-who">
+                    <span className="student-avatar" aria-hidden="true">{(r.full_name || r.email).slice(0, 2).toUpperCase()}</span>
+                    <span className="student-text">
+                      <strong>{r.full_name || '—'}</strong>
+                      <span>{r.email} · {formatDate(r.created_at)}</span>
+                    </span>
+                  </div>
+                  <div className="student-progress">
+                    <div className="bar"><div style={{ width: `${pct}%` }} /></div>
+                    <span>{pct}%</span>
+                  </div>
+                  <span className={`student-status ${r.status}`}>
+                    {r.is_admin ? 'Admin' : r.status === 'active' ? 'Nel percorso' : r.status === 'pending' ? 'Da sbloccare' : 'Bloccato'}
                   </span>
+                  <div className="student-action">
+                    {!r.is_admin && (r.status === 'active' ? (
+                      <button type="button" className="btn btn-outline btn-sm" disabled={busyId === r.id} onClick={() => setStatus(r, 'blocked')}>Blocca</button>
+                    ) : (
+                      <button type="button" className="btn btn-red btn-sm" disabled={busyId === r.id} onClick={() => setStatus(r, 'active')}>
+                        {r.status === 'blocked' ? 'Riattiva' : 'Sblocca'}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <span className="muted">{formatDate(r.created_at)}</span>
-                <div className="mini-progress">
-                  <div className="progress thin"><div style={{ width: `${pct}%` }} /></div>
-                  <span className="muted small">{pct}%</span>
-                </div>
-                <div>
-                  {r.status === 'active' && <span className="status status-active"><i />Attivo</span>}
-                  {r.status === 'pending' && <span className="status status-pending"><i />In attesa</span>}
-                  {r.status === 'blocked' && <span className="status status-blocked"><i />Bloccato</span>}
-                </div>
-                <div>
-                  {r.is_admin ? (
-                    <span className="muted small">Admin</span>
-                  ) : r.status === 'active' ? (
-                    <button type="button" className="btn btn-outline btn-sm" disabled={busyId === r.id} onClick={() => setStatus(r, 'blocked')}>
-                      <IconLock size={16} /> Blocca
-                    </button>
-                  ) : (
-                    <button type="button" className="btn btn-primary btn-sm" disabled={busyId === r.id} onClick={() => setStatus(r, 'active')}>
-                      <IconLockOpen size={16} /> {r.status === 'blocked' ? 'Riattiva' : 'Sblocca'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </>
   );
 }
 
-/* ---------------------------------- Lezioni ---------------------------------- */
+/* ------------------------------ Moduli e lezioni ------------------------------ */
 
 interface Draft {
   id: string | null;
   module_id: string;
   title: string;
   video_url: string;
+  action: string;
   description: string;
   transcript: string;
   resources: string;
@@ -212,11 +226,13 @@ function textToResources(t: string): Resource[] {
     .filter((r) => /^https?:\/\//i.test(r.url));
 }
 
+const pad = (n: number) => String(n).padStart(2, '0');
+
 function LessonsTab() {
   const [modules, setModules] = useState<Module[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const [openId, setOpenId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [newModule, setNewModule] = useState('');
   const [renaming, setRenaming] = useState<{ id: string; title: string } | null>(null);
@@ -271,28 +287,13 @@ function LessonsTab() {
     await load();
   };
 
-  const swap = async (table: 'modules' | 'lessons', a: { id: string; position: number }, b: { id: string; position: number }, ia: number, ib: number) => {
-    // Le posizioni vengono rinumerate in base all'ordine attuale, così lo spostamento funziona sempre.
-    await Promise.all([
-      supabase.from(table).update({ position: ib }).eq('id', a.id),
-      supabase.from(table).update({ position: ia }).eq('id', b.id),
-    ]);
-  };
-
-  const moveModule = async (index: number, dir: -1 | 1) => {
-    const j = index + dir;
-    if (j < 0 || j >= modules.length) return;
-    await Promise.all(modules.map((m, i) => (m.position !== i ? supabase.from('modules').update({ position: i }).eq('id', m.id) : null)));
-    await swap('modules', modules[index], modules[j], index, j);
-    await load();
-  };
-
-  const moveLesson = async (moduleId: string, index: number, dir: -1 | 1) => {
-    const list = byModule[moduleId] ?? [];
+  // Rinumera le posizioni secondo l'ordine attuale e scambia i due elementi.
+  const reorder = async (table: 'modules' | 'lessons', list: { id: string; position: number }[], index: number, dir: -1 | 1) => {
     const j = index + dir;
     if (j < 0 || j >= list.length) return;
-    await Promise.all(list.map((l, i) => (l.position !== i ? supabase.from('lessons').update({ position: i }).eq('id', l.id) : null)));
-    await swap('lessons', list[index], list[j], index, j);
+    const ordered = [...list];
+    [ordered[index], ordered[j]] = [ordered[j], ordered[index]];
+    await Promise.all(ordered.map((x, i) => (x.position !== i ? supabase.from(table).update({ position: i }).eq('id', x.id) : null)));
     await load();
   };
 
@@ -306,12 +307,12 @@ function LessonsTab() {
   };
 
   const startNew = (moduleId?: string) => {
-    setDraft({ id: null, module_id: moduleId ?? modules[0]?.id ?? '', title: '', video_url: '', description: '', transcript: '', resources: '', published: true });
+    setDraft({ id: null, module_id: moduleId ?? modules[0]?.id ?? '', title: '', video_url: '', action: '', description: '', transcript: '', resources: '', published: true });
   };
 
   const startEdit = (l: Lesson) => {
     setDraft({
-      id: l.id, module_id: l.module_id, title: l.title, video_url: l.video_url, description: l.description,
+      id: l.id, module_id: l.module_id, title: l.title, video_url: l.video_url, action: l.action ?? '', description: l.description,
       transcript: l.transcript, resources: resourcesToText(l.resources), published: l.published,
     });
   };
@@ -324,6 +325,7 @@ function LessonsTab() {
       module_id: draft.module_id,
       title: draft.title.trim(),
       video_url: draft.video_url.trim(),
+      action: draft.action.trim(),
       description: draft.description.trim(),
       transcript: draft.transcript.trim(),
       resources: textToResources(draft.resources),
@@ -334,14 +336,14 @@ function LessonsTab() {
       ({ error } = await supabase.from('lessons').update(payload).eq('id', draft.id));
     } else {
       const siblings = byModule[draft.module_id] ?? [];
-      const position = siblings.length ? Math.max(...siblings.map((s) => s.position)) + 1 : 0;
+      const position = siblings.length ? Math.max(...siblings.map((x) => x.position)) + 1 : 0;
       const res = await supabase.from('lessons').insert({ ...payload, position }).select('id').single();
       error = res.error;
       if (res.data) setDraft({ ...draft, id: (res.data as { id: string }).id });
     }
     setSaving(false);
     if (error) return flash('err', 'Lezione non salvata. Riprova.');
-    setOpen((o) => ({ ...o, [draft.module_id]: true }));
+    setOpenId(draft.module_id);
     await load();
     flash('ok', 'Lezione salvata');
   };
@@ -355,139 +357,145 @@ function LessonsTab() {
     flash('ok', 'Lezione eliminata');
   };
 
-  if (!loaded) return <p className="muted">Caricamento lezioni…</p>;
-
   const withVideo = lessons.filter((l) => parseVideo(l.video_url)).length;
   const video = draft ? parseVideo(draft.video_url) : null;
 
   return (
-    <div className="admin-lessons">
-      <div className="admin-lessons-list stack-md">
-        <div className="toolbar">
-          <span className="muted">{lessons.length} lezioni · {withVideo} con video · {lessons.filter((l) => l.published).length} pubblicate</span>
-          <button type="button" className="btn btn-primary btn-sm" onClick={() => startNew()} disabled={!modules.length}>
-            <IconPlus size={16} /> Nuova lezione
-          </button>
+    <>
+      <div className="toolbar">
+        <div className="stack-sm">
+          <h1 className="admin-h1">Moduli e lezioni</h1>
+          <p className="admin-lead">{lessons.length} lezioni · {withVideo} con video · {lessons.filter((l) => l.published).length} pubblicate</p>
         </div>
-
-        {msg && <p className={msg.kind === 'ok' ? 'flash ok' : 'flash err'} role="status">{msg.text}</p>}
-
-        {modules.map((m, mi) => {
-          const list = byModule[m.id] ?? [];
-          const isOpen = !!open[m.id];
-          return (
-            <div className="admin-module" key={m.id}>
-              <div className="admin-module-head">
-                {renaming?.id === m.id ? (
-                  <div className="rename">
-                    <input aria-label="Nome del modulo" value={renaming.title} onChange={(e) => setRenaming({ id: m.id, title: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && saveRename()} autoFocus />
-                    <button type="button" className="btn btn-primary btn-sm" onClick={saveRename}>Salva</button>
-                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => setRenaming(null)}>Annulla</button>
+        <button type="button" className="btn btn-red" onClick={() => startNew()} disabled={!modules.length}><IconPlus size={18} /> Nuova lezione</button>
+      </div>
+      {!loaded ? (
+        <p className="muted">Caricamento…</p>
+      ) : (
+        <div className="lessons-layout">
+          <div className="lessons-list">
+            {msg && <p className={msg.kind === 'ok' ? 'flash ok' : 'flash err'} role="status">{msg.text}</p>}
+            {modules.map((m, mi) => {
+              const list = byModule[m.id] ?? [];
+              const isOpen = openId === m.id;
+              return (
+                <div className="mod-group" key={m.id}>
+                  <div className="mod-group-head">
+                    {renaming?.id === m.id ? (
+                      <div className="rename">
+                        <input className="inline-input" aria-label="Nome del modulo" value={renaming.title} onChange={(e) => setRenaming({ id: m.id, title: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && saveRename()} autoFocus />
+                        <button type="button" className="btn btn-red btn-sm" onClick={saveRename}>Salva</button>
+                        <button type="button" className="btn btn-ghost btn-sm" onClick={() => setRenaming(null)}>Annulla</button>
+                      </div>
+                    ) : (
+                      <button type="button" className="mod-group-toggle" aria-expanded={isOpen} onClick={() => setOpenId(isOpen ? null : m.id)}>
+                        <span className="num">{pad(mi)}</span>
+                        <span className="ttl">{m.title}</span>
+                        <span className="cnt">{list.length} {list.length === 1 ? 'lezione' : 'lezioni'}</span>
+                        {isOpen ? <IconChevronUp size={18} /> : <IconChevronDown size={18} />}
+                      </button>
+                    )}
+                    <div className="icon-actions">
+                      <button type="button" className="icon-btn" aria-label="Sposta su" disabled={mi === 0} onClick={() => reorder('modules', modules, mi, -1)}><IconChevronUp size={18} /></button>
+                      <button type="button" className="icon-btn" aria-label="Sposta giù" disabled={mi === modules.length - 1} onClick={() => reorder('modules', modules, mi, 1)}><IconChevronDown size={18} /></button>
+                      <button type="button" className="btn btn-ghost btn-sm" onClick={() => setRenaming({ id: m.id, title: m.title })}>Rinomina</button>
+                      {confirmDelete === m.id ? (
+                        <button type="button" className="btn btn-danger btn-sm" onClick={() => deleteModule(m.id)}>Conferma: elimina</button>
+                      ) : (
+                        <button type="button" className="icon-btn" aria-label="Elimina modulo" onClick={() => setConfirmDelete(m.id)}><IconTrash size={18} /></button>
+                      )}
+                    </div>
                   </div>
-                ) : (
-                  <button type="button" className="admin-module-toggle" aria-expanded={isOpen} onClick={() => setOpen((o) => ({ ...o, [m.id]: !isOpen }))}>
-                    <strong>{m.title}</strong>
-                    <span className="muted small">{list.length} {list.length === 1 ? 'lezione' : 'lezioni'}</span>
-                    {isOpen ? <IconChevronUp size={18} /> : <IconChevronDown size={18} />}
-                  </button>
-                )}
-                <div className="icon-actions">
-                  <button type="button" className="icon-btn" aria-label="Sposta su" disabled={mi === 0} onClick={() => moveModule(mi, -1)}><IconChevronUp size={18} /></button>
-                  <button type="button" className="icon-btn" aria-label="Sposta giù" disabled={mi === modules.length - 1} onClick={() => moveModule(mi, 1)}><IconChevronDown size={18} /></button>
-                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setRenaming({ id: m.id, title: m.title })}>Rinomina</button>
-                  {confirmDelete === m.id ? (
-                    <button type="button" className="btn btn-danger btn-sm" onClick={() => deleteModule(m.id)}>Conferma: elimina modulo e lezioni</button>
-                  ) : (
-                    <button type="button" className="icon-btn" aria-label="Elimina modulo" onClick={() => setConfirmDelete(m.id)}><IconTrash size={18} /></button>
+                  {isOpen && (
+                    <div>
+                      {list.map((l, li) => (
+                        <div className={draft?.id === l.id ? 'lesson-row selected' : 'lesson-row'} key={l.id}>
+                          <div className="icon-actions">
+                            <button type="button" className="icon-btn" aria-label="Sposta su" disabled={li === 0} onClick={() => reorder('lessons', list, li, -1)}><IconChevronUp size={16} /></button>
+                            <button type="button" className="icon-btn" aria-label="Sposta giù" disabled={li === list.length - 1} onClick={() => reorder('lessons', list, li, 1)}><IconChevronDown size={16} /></button>
+                          </div>
+                          <span className="lesson-row-title">{l.title}</span>
+                          <span className={parseVideo(l.video_url) ? 'tag ok' : 'tag no'}>{parseVideo(l.video_url) ? 'Video ok' : 'Senza video'}</span>
+                          {!l.published && <span className="tag draft">Bozza</span>}
+                          <button type="button" className="btn btn-outline btn-sm" onClick={() => startEdit(l)}>Modifica</button>
+                        </div>
+                      ))}
+                      <button type="button" className="add-row" onClick={() => startNew(m.id)}><IconPlus size={16} /> Aggiungi lezione a questo modulo</button>
+                    </div>
                   )}
                 </div>
-              </div>
-              {isOpen && (
-                <div className="admin-module-body">
-                  {list.length === 0 && <p className="muted small pad">Nessuna lezione in questo modulo.</p>}
-                  {list.map((l, li) => (
-                    <div className={draft?.id === l.id ? 'admin-lesson selected' : 'admin-lesson'} key={l.id}>
-                      <div className="icon-actions">
-                        <button type="button" className="icon-btn" aria-label="Sposta su" disabled={li === 0} onClick={() => moveLesson(m.id, li, -1)}><IconChevronUp size={16} /></button>
-                        <button type="button" className="icon-btn" aria-label="Sposta giù" disabled={li === list.length - 1} onClick={() => moveLesson(m.id, li, 1)}><IconChevronDown size={16} /></button>
-                      </div>
-                      <span className="admin-lesson-title">{l.title}</span>
-                      {parseVideo(l.video_url) ? <span className="status status-active"><i />Video</span> : <span className="status status-muted"><i />Senza video</span>}
-                      {l.published ? <span className="status status-active"><i />Pubblicata</span> : <span className="status status-pending"><i />Bozza</span>}
-                      <button type="button" className="btn btn-outline btn-sm" onClick={() => startEdit(l)}>Modifica</button>
-                    </div>
-                  ))}
-                  <button type="button" className="add-row" onClick={() => startNew(m.id)}><IconPlus size={16} /> Aggiungi lezione a questo modulo</button>
-                </div>
-              )}
-            </div>
-          );
-        })}
-
-        <form className="add-module" onSubmit={addModule}>
-          <input aria-label="Nome del nuovo modulo" placeholder="Nome del nuovo modulo" value={newModule} onChange={(e) => setNewModule(e.target.value)} />
-          <button type="submit" className="btn btn-outline btn-sm"><IconPlus size={16} /> Nuovo modulo</button>
-        </form>
-      </div>
-
-      <div className="admin-editor">
-        {!draft ? (
-          <div className="card stack-sm">
-            <h2 className="h3">Modifica lezioni</h2>
-            <p className="muted">Premi <strong>Modifica</strong> su una lezione, oppure <strong>Nuova lezione</strong>, per inserire titolo, video, descrizione e materiali.</p>
+              );
+            })}
+            <form className="add-module" onSubmit={addModule}>
+              <input className="inline-input" aria-label="Nome del nuovo modulo" placeholder="Nome del nuovo modulo" value={newModule} onChange={(e) => setNewModule(e.target.value)} />
+              <button type="submit" className="btn btn-outline btn-sm"><IconPlus size={16} /> Nuovo modulo</button>
+            </form>
           </div>
-        ) : (
-          <form className="card form" onSubmit={saveDraft}>
-            <h2 className="h3">{draft.id ? 'Modifica lezione' : 'Nuova lezione'}</h2>
-            <label className="field">
-              Modulo
-              <select value={draft.module_id} onChange={(e) => setDraft({ ...draft, module_id: e.target.value })}>
-                {modules.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
-              </select>
-            </label>
-            <label className="field">
-              Titolo della lezione
-              <input required value={draft.title} placeholder="Es. Scrivere lo script della VSL" onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
-            </label>
-            <label className="field">
-              Link del video (Bunny Stream, Vimeo o YouTube)
-              <input type="url" value={draft.video_url} placeholder="https://iframe.mediadelivery.net/embed/…" onChange={(e) => setDraft({ ...draft, video_url: e.target.value })} />
-              {draft.video_url.trim() && (
-                video ? <span className="hint ok">Video riconosciuto: {video.provider}</span> : <span className="hint err">Link non riconosciuto: incolla il link del video da Bunny Stream, Vimeo o YouTube</span>
-              )}
-            </label>
-            <label className="field">
-              Descrizione
-              <textarea rows={4} value={draft.description} placeholder="Cosa impara lo studente in questa lezione" onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
-            </label>
-            <label className="field">
-              Materiali e link (uno per riga: Nome | link)
-              <textarea rows={3} value={draft.resources} placeholder={'Slide della lezione | https://drive.google.com/…'} onChange={(e) => setDraft({ ...draft, resources: e.target.value })} />
-            </label>
-            <label className="field">
-              Trascrizione (facoltativa)
-              <textarea rows={4} value={draft.transcript} onChange={(e) => setDraft({ ...draft, transcript: e.target.value })} />
-            </label>
-            <label className="check">
-              <input type="checkbox" checked={draft.published} onChange={(e) => setDraft({ ...draft, published: e.target.checked })} />
-              <span>Pubblicata (visibile agli studenti)</span>
-            </label>
-            <div className="row-gap wrap">
-              <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Salvataggio…' : 'Salva lezione'}</button>
-              <button type="button" className="btn btn-ghost" onClick={() => setDraft(null)}>Chiudi</button>
-              {draft.id && (
-                confirmDelete === draft.id ? (
-                  <button type="button" className="btn btn-danger" onClick={() => deleteLesson(draft.id!)}>Conferma eliminazione</button>
-                ) : (
-                  <button type="button" className="btn btn-ghost text-red" onClick={() => setConfirmDelete(draft.id)}><IconTrash size={16} /> Elimina</button>
-                )
-              )}
-            </div>
-            {draft.id && <a className="link small" href={`/lezione/${draft.id}`} target="_blank" rel="noreferrer">Apri l’anteprima della lezione</a>}
-          </form>
-        )}
-      </div>
-    </div>
+
+          <div className="editor">
+            {!draft ? (
+              <div className="editor-card">
+                <span className="editor-title">Modifica lezioni</span>
+                <p className="muted">Apri un modulo e premi <strong>Modifica</strong> su una lezione, oppure <strong>Nuova lezione</strong>.</p>
+              </div>
+            ) : (
+              <form className="editor-card" onSubmit={saveDraft}>
+                <span className="editor-title">{draft.id ? 'Modifica lezione' : 'Nuova lezione'}</span>
+                <label className="field">
+                  Modulo
+                  <select value={draft.module_id} onChange={(e) => setDraft({ ...draft, module_id: e.target.value })}>
+                    {modules.map((m, i) => <option key={m.id} value={m.id}>{pad(i)} · {m.title}</option>)}
+                  </select>
+                </label>
+                <label className="field">
+                  Titolo
+                  <input required value={draft.title} placeholder="Es. Scrivere lo script della VSL" onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
+                </label>
+                <label className="field">
+                  Link del video
+                  <input type="url" value={draft.video_url} placeholder="Link Bunny Stream o Vimeo" onChange={(e) => setDraft({ ...draft, video_url: e.target.value })} />
+                  {draft.video_url.trim() && (
+                    video ? <span className="hint ok">Video riconosciuto: {video.provider}</span> : <span className="hint err">Link non riconosciuto: incolla il link del video da Bunny Stream, Vimeo o YouTube</span>
+                  )}
+                </label>
+                <label className="field red">
+                  L’azione di oggi
+                  <textarea rows={3} value={draft.action} placeholder="Cosa deve applicare lo studente dopo questa lezione" onChange={(e) => setDraft({ ...draft, action: e.target.value })} />
+                </label>
+                <label className="field">
+                  Descrizione
+                  <textarea rows={3} value={draft.description} placeholder="Di cosa parla la lezione" onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
+                </label>
+                <label className="field">
+                  Materiali (uno per riga: Nome | link)
+                  <textarea rows={3} value={draft.resources} placeholder={'Slide della lezione | https://drive.google.com/…'} onChange={(e) => setDraft({ ...draft, resources: e.target.value })} />
+                </label>
+                <label className="field">
+                  Trascrizione (facoltativa)
+                  <textarea rows={3} value={draft.transcript} onChange={(e) => setDraft({ ...draft, transcript: e.target.value })} />
+                </label>
+                <label className="check">
+                  <input type="checkbox" checked={draft.published} onChange={(e) => setDraft({ ...draft, published: e.target.checked })} />
+                  <span>Pubblicata (visibile agli studenti)</span>
+                </label>
+                <div className="row-gap wrap">
+                  <button type="submit" className="btn btn-red" disabled={saving}>{saving ? 'Salvataggio…' : 'Salva lezione'}</button>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => setDraft(null)}>Chiudi</button>
+                  {draft.id && (
+                    confirmDelete === draft.id ? (
+                      <button type="button" className="btn btn-danger btn-sm" onClick={() => deleteLesson(draft.id!)}>Conferma eliminazione</button>
+                    ) : (
+                      <button type="button" className="btn btn-ghost btn-sm text-red" onClick={() => setConfirmDelete(draft.id)}><IconTrash size={16} /> Elimina</button>
+                    )
+                  )}
+                </div>
+                {draft.id && <a className="link small" href={`/corso/${draft.id}`} target="_blank" rel="noreferrer">Apri l’anteprima della lezione</a>}
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -495,11 +503,13 @@ function LessonsTab() {
 
 function SettingsTab() {
   const [s, setS] = useState<Settings>(EMPTY_SETTINGS);
+  const [firstLocal, setFirstLocal] = useState('');
   const [state, setState] = useState<'loading' | 'idle' | 'saving' | 'saved' | 'error'>('loading');
 
   useEffect(() => {
     fetchSettings(true).then((v) => {
       setS(v);
+      setFirstLocal(isoToLocalInput(v.call_first_at));
       setState('idle');
     });
   }, []);
@@ -507,39 +517,56 @@ function SettingsTab() {
   const save = async (e: FormEvent) => {
     e.preventDefault();
     setState('saving');
-    const rows = (Object.keys(s) as (keyof Settings)[]).map((key) => ({ key, value: s[key].trim() }));
+    const values: Settings = { ...s, call_first_at: localInputToIso(firstLocal), call_count: String(Math.max(1, parseInt(s.call_count, 10) || 8)) };
+    const rows = (Object.keys(values) as (keyof Settings)[]).map((key) => ({ key, value: values[key].trim() }));
     const { error } = await supabase.from('settings').upsert(rows);
     if (error) return setState('error');
     await fetchSettings(true);
     setState('saved');
   };
 
-  if (state === 'loading') return <p className="muted">Caricamento…</p>;
-
   return (
-    <form className="card form narrow-form" onSubmit={save}>
-      <h2 className="h3">Link e informazioni per gli studenti</h2>
-      <label className="field">
-        Prossima call di gruppo (testo libero)
-        <input value={s.meeting_when} placeholder="Es. Giovedì 20 novembre, ore 18:00" onChange={(e) => setS({ ...s, meeting_when: e.target.value })} />
-      </label>
-      <label className="field">
-        Link della call (Zoom, Google Meet…)
-        <input type="url" value={s.meeting_url} placeholder="https://meet.google.com/…" onChange={(e) => setS({ ...s, meeting_url: e.target.value })} />
-      </label>
-      <label className="field">
-        Link di invito a Slack
-        <input type="url" value={s.slack_url} placeholder="https://join.slack.com/…" onChange={(e) => setS({ ...s, slack_url: e.target.value })} />
-      </label>
-      <label className="field">
-        Email di supporto
-        <input type="email" value={s.support_email} placeholder="supporto@brandtoclient.com" onChange={(e) => setS({ ...s, support_email: e.target.value })} />
-      </label>
-      <div className="row-gap">
-        <button type="submit" className="btn btn-primary" disabled={state === 'saving'}>{state === 'saving' ? 'Salvataggio…' : 'Salva'}</button>
-        {state === 'saved' && <span className="muted small">Salvato</span>}
-        {state === 'error' && <span className="form-error small">Non salvato, riprova</span>}
+    <>
+      <div className="stack-sm">
+        <h1 className="admin-h1">Impostazioni</h1>
+        <p className="admin-lead">Call settimanale, Slack ed email di supporto: è quello che gli studenti vedono nella home.</p>
       </div>
-    </form>
+      {state === 'loading' ? (
+        <p className="muted">Caricamento…</p>
+      ) : (
+        <form className="editor-card settings-card form" onSubmit={save}>
+          <span className="editor-title">Call settimanale</span>
+          <div className="form-split">
+            <label className="field">
+              Data e ora della prima call
+              <input type="datetime-local" value={firstLocal} onChange={(e) => setFirstLocal(e.target.value)} />
+            </label>
+            <label className="field">
+              Numero di call
+              <input type="number" min={1} max={52} value={s.call_count} onChange={(e) => setS({ ...s, call_count: e.target.value })} />
+            </label>
+          </div>
+          <p className="muted small">Le call successive si calcolano da sole, una a settimana alla stessa ora. Il conto alla rovescia nella home si aggiorna da solo.</p>
+          <label className="field">
+            Link della call (Zoom, Google Meet…)
+            <input type="url" value={s.meeting_url} placeholder="https://meet.google.com/…" onChange={(e) => setS({ ...s, meeting_url: e.target.value })} />
+          </label>
+          <span className="editor-title">Community e supporto</span>
+          <label className="field">
+            Link di invito al gruppo Slack
+            <input type="url" value={s.slack_url} placeholder="https://join.slack.com/…" onChange={(e) => setS({ ...s, slack_url: e.target.value })} />
+          </label>
+          <label className="field">
+            Email di supporto
+            <input type="email" value={s.support_email} placeholder="supporto@brandtoclient.com" onChange={(e) => setS({ ...s, support_email: e.target.value })} />
+          </label>
+          <div className="row-gap">
+            <button type="submit" className="btn btn-red" disabled={state === 'saving'}>{state === 'saving' ? 'Salvataggio…' : 'Salva'}</button>
+            {state === 'saved' && <span className="muted small">Salvato</span>}
+            {state === 'error' && <span className="form-error small">Non salvato, riprova</span>}
+          </div>
+        </form>
+      )}
+    </>
   );
 }

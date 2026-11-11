@@ -1,22 +1,35 @@
 import { useEffect, useRef } from 'react';
 import playerjs from 'player.js';
-import { parseVideo, withAutoplay } from '../lib/video';
+import { parseVideo } from '../lib/video';
 import { IconVideo } from './Icons';
 
 interface Props {
   url: string;
   title: string;
-  autoplay: boolean;
-  onEnded: () => void;
+  /** Chiamata una sola volta quando lo studente arriva alla fine del video (ultimi secondi inclusi). */
+  onWatched: () => void;
 }
 
-export default function VideoPlayer({ url, title, autoplay, onEnded }: Props) {
+const WATCHED_RATIO = 0.95;
+
+export default function VideoPlayer({ url, title, onWatched }: Props) {
   const source = parseVideo(url);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const endedRef = useRef(onEnded);
-  endedRef.current = onEnded;
+  const watchedRef = useRef(onWatched);
+  watchedRef.current = onWatched;
+  const firedRef = useRef(false);
 
-  const src = source ? withAutoplay(source, autoplay) : '';
+  const src = source?.src ?? '';
+
+  useEffect(() => {
+    firedRef.current = false;
+  }, [src]);
+
+  const fire = () => {
+    if (firedRef.current) return;
+    firedRef.current = true;
+    watchedRef.current();
+  };
 
   useEffect(() => {
     const el = iframeRef.current;
@@ -26,7 +39,11 @@ export default function VideoPlayer({ url, title, autoplay, onEnded }: Props) {
       const player = new playerjs.Player(el);
       player.on('ready', () => {
         if (cancelled) return;
-        player.on('ended', () => endedRef.current());
+        player.on('ended', () => fire());
+        player.on('timeupdate', (data: unknown) => {
+          const d = data as { seconds?: number; duration?: number } | undefined;
+          if (d && d.duration && d.seconds && d.seconds / d.duration >= WATCHED_RATIO) fire();
+        });
       });
     } catch {
       // Il player non supporta gli eventi: il video funziona comunque.
@@ -52,7 +69,18 @@ export default function VideoPlayer({ url, title, autoplay, onEnded }: Props) {
   if (source.kind === 'file') {
     return (
       <div className="player">
-        <video key={src} src={src} controls controlsList="nodownload" playsInline autoPlay={autoplay} onEnded={() => endedRef.current()} />
+        <video
+          key={src}
+          src={src}
+          controls
+          controlsList="nodownload"
+          playsInline
+          onEnded={fire}
+          onTimeUpdate={(e) => {
+            const v = e.currentTarget;
+            if (v.duration && v.currentTime / v.duration >= WATCHED_RATIO) fire();
+          }}
+        />
       </div>
     );
   }

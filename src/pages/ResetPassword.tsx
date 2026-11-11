@@ -31,7 +31,7 @@ export default function ResetPassword() {
   if (!loading && !session) {
     return (
       <AuthLayout title="Link scaduto" subtitle="Il link per reimpostare la password non è più valido. Richiedine uno nuovo.">
-        <Link to="/password-dimenticata" className="btn btn-primary btn-block">Richiedi un nuovo link</Link>
+        <Link to="/password-dimenticata" className="btn btn-red btn-block">Richiedi un nuovo link</Link>
       </AuthLayout>
     );
   }
@@ -44,7 +44,7 @@ export default function ResetPassword() {
           <input type="password" autoComplete="new-password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
         {error && <p className="form-error" role="alert">{error}</p>}
-        <button type="submit" className="btn btn-primary btn-block" disabled={busy || loading}>
+        <button type="submit" className="btn btn-red btn-block" disabled={busy || loading}>
           {busy ? 'Salvataggio…' : 'Salva la nuova password'}
         </button>
       </form>

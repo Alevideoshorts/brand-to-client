@@ -27,7 +27,7 @@ export default function ForgotPassword() {
   if (sent) {
     return (
       <AuthLayout title="Email inviata" subtitle={`Se ${email} è registrata, riceverai un link per scegliere una nuova password. Controlla anche lo spam.`}>
-        <Link to="/accedi" className="btn btn-primary btn-block">Torna all’accesso</Link>
+        <Link to="/accedi" className="btn btn-red btn-block">Torna all’accesso</Link>
       </AuthLayout>
     );
   }
@@ -40,7 +40,7 @@ export default function ForgotPassword() {
           <input type="email" autoComplete="email" required placeholder="nome@email.it" value={email} onChange={(e) => setEmail(e.target.value)} />
         </label>
         {error && <p className="form-error" role="alert">{error}</p>}
-        <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
+        <button type="submit" className="btn btn-red btn-block" disabled={busy}>
           {busy ? 'Invio in corso…' : 'Invia il link'}
         </button>
       </form>

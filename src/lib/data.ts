@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import type { Lesson, ModuleWithLessons, Settings } from './types';
 
-export const EMPTY_SETTINGS: Settings = { meeting_url: '', meeting_when: '', slack_url: '', support_email: '' };
+export const EMPTY_SETTINGS: Settings = { meeting_url: '', slack_url: '', support_email: '', call_first_at: '', call_count: '8' };
 
 let settingsCache: Settings | null = null;
 

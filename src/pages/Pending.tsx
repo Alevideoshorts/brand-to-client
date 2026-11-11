@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { IconCheck, IconClock } from '../components/Icons';
+import { IconCheck } from '../components/Icons';
 import { isMember, useAuth } from '../lib/auth';
 import { useSettings } from '../lib/data';
 
@@ -32,46 +32,50 @@ export default function Pending() {
   };
 
   return (
-    <div className="pending">
-      <img className="pending-bg" src="/cover.jpg" alt="" />
-      <div className="pending-card">
-        <img src="/logo.png" alt="Logo InfoFormatVirale" width={72} height={72} />
-        <div className="pending-head">
-          <span className="chip chip-red">
-            <IconClock size={14} /> {blocked ? 'Accesso sospeso' : 'In attesa di attivazione'}
-          </span>
-          <h1>{blocked ? 'Il tuo accesso è sospeso' : 'Account creato!'}</h1>
+    <div className="auth">
+      <img className="auth-bg" src="/cover.jpg" alt="" />
+      <div className="auth-card wide">
+        <div className="auth-head">
+          <img src="/logo.png" alt="Logo InfoFormatVirale" width={64} height={64} style={{ borderRadius: '50%' }} />
+          <span className="eyebrow"><span className="eyebrow-dot" />{blocked ? 'Accesso sospeso' : 'Accesso in attivazione'}</span>
+          <h1 className="pending-title">{blocked ? 'Accesso sospeso.' : 'Ci siamo quasi.'}</h1>
           <p>
             {blocked
-              ? 'Al momento il tuo account non ha accesso al corso. Se pensi sia un errore, contattaci.'
-              : 'Il tuo accesso a Brand To Client verrà sbloccato a breve. Appena è attivo, questa pagina ti porta direttamente al corso.'}
+              ? 'Al momento il tuo account non ha accesso al percorso. Se pensi sia un errore, scrivici.'
+              : 'Il tuo account è creato. Stiamo verificando la tua iscrizione: appena sblocchiamo l’accesso, questa pagina ti porta dentro il percorso da sola.'}
           </p>
         </div>
         {!blocked && (
           <ol className="steps">
             <li className="step done">
-              <span className="step-dot"><IconCheck size={16} strokeWidth={3} /></span>
-              Account creato
+              <span className="step-num">01</span>
+              <span className="step-label">Account creato</span>
+              <IconCheck size={22} strokeWidth={2.5} className="text-red" aria-label="Fatto" />
             </li>
             <li className="step current">
-              <span className="step-dot">2</span>
-              Verifica dell’iscrizione e sblocco dell’accesso
+              <span className="step-num">02</span>
+              <span className="step-label">Verifica dell’iscrizione</span>
+              <span className="step-tag">In corso</span>
             </li>
             <li className="step">
-              <span className="step-dot">3</span>
-              Accesso al corso e alle call di gruppo
+              <span className="step-num">03</span>
+              <span className="step-label">Inizia il modulo 00 del percorso</span>
             </li>
           </ol>
         )}
-        <button type="button" className="btn btn-primary btn-block" onClick={check} disabled={checking}>
+        <button type="button" className="btn btn-red btn-block" onClick={check} disabled={checking}>
           {checking ? 'Controllo…' : 'Controlla di nuovo'}
         </button>
-        <button type="button" className="btn btn-ghost btn-block" onClick={logout}>Esci</button>
-        {settings.support_email && (
-          <p className="muted small">
-            Hai bisogno di aiuto? Scrivi a <a className="link" href={`mailto:${settings.support_email}`}>{settings.support_email}</a>
-          </p>
-        )}
+        <div className="pending-foot">
+          <span>
+            {settings.support_email ? (
+              <>Serve aiuto? <a className="link" href={`mailto:${settings.support_email}`}>{settings.support_email}</a></>
+            ) : (
+              'Ti avvisiamo appena l’accesso è attivo.'
+            )}
+          </span>
+          <button type="button" onClick={logout}>Esci</button>
+        </div>
       </div>
     </div>
   );
