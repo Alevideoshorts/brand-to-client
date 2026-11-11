@@ -1,0 +1,40 @@
+# Controllo automatico: due volte al giorno fa una vera lettura sul database
+# Supabase, così il progetto sul piano gratuito non risulta mai inattivo
+# e non va in pausa dopo 7 giorni. Legge solo la tabella "heartbeat",
+# che non contiene dati personali. URL e chiave "publishable" sono pubbliche.
+name: Keep-alive Supabase
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+    - cron: '17 18 * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: https://lhymcknoojjhkesqorlq.supabase.co
+      SUPABASE_KEY: sb_publishable_z-0lXakVJtLsK4Wr8BKLmg__wxW0EDq
+    steps:
+      - name: Lettura sul database (3 volte)
+        run: |
+          for i in 1 2 3; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -H "apikey: $SUPABASE_KEY" "$SUPABASE_URL/rest/v1/heartbeat?select=id&limit=1")
+            echo "Lettura $i: HTTP $code"
+            [ "$code" = "200" ] || exit 1
+            sleep 2
+          done
+
+      # GitHub disattiva i controlli programmati dei repository pubblici dopo
+      # 60 giorni senza modifiche: lo riattiviamo a ogni esecuzione.
+      - name: Tieni attivo il controllo
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/keep-alive.yml/enable"
